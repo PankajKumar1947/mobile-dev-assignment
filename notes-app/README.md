@@ -6,7 +6,8 @@ A sleek, modern, and high-density Notes application built with React Native and 
 
 Check out the application in action:
 
-<video src="./assets/demo.mp4" width="320" height="640" controls>
+<video width="320" height="640" controls>
+  <source src="demo/demo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
