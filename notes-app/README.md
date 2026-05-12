@@ -1,6 +1,14 @@
-# OnyxNotes
+# Notes App
 
-A sleek, modern, and high-density Notes application built with React Native and Expo. OnyxNotes features a premium "Onyx Black & Vibrant Orange" aesthetic, designed for speed and productivity.
+A sleek, modern, and high-density Notes application built with React Native and Expo. Notes app features a premium "Black & Vibrant Orange" aesthetic, designed for speed and productivity.
+
+## Demo
+
+Check out the application in action:
+
+<video src="./assets/demo.mp4" width="320" height="640" controls>
+  Your browser does not support the video tag.
+</video>
 
 ## Features
 
@@ -38,21 +46,15 @@ src/
 
 ## Screenshots
 
-### Dark Mode & Grid Layout
+### Light Mode & High-Density Layout
 | | | |
 |:---:|:---:|:---:|
-| ![Main Screen](./screenshots/1.png) | ![Search & Filter](./screenshots/2.png) | ![Note Detail](./screenshots/3.png) |
+| ![Main Screen](./screenshots/1.png) | ![Note Editor](./screenshots/2.png) | ![Note Detail](./screenshots/3.png) |
 
-### Light Mode & Editor
+### Dark Mode & Premium Aesthetic
 | | | |
 |:---:|:---:|:---:|
-| ![Note Editor](./screenshots/4.png) | ![Light Theme](./screenshots/5.png) | ![Tablet View](./screenshots/6.png) |
-
-## Demo
-
-Check out the application in action:
-
-![App Demo](./assets/demo.mp4)
+| ![Dark Theme](./screenshots/4.png) | ![Edit Mode](./screenshots/5.png) | ![Dark Detail](./screenshots/6.png) |
 
 ## Getting Started
 
