@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, TouchableWithoutFeedback } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { useAlert } from '../context/use-alert-context';
 import { Badge } from '../components/badge';
@@ -11,6 +11,7 @@ import { useSnippetContext } from '../context/use-snippet-context';
 import { useSnippetOperations } from '../hooks/use-snippet-operations';
 import { useAppTheme } from '../theme';
 import { Snippet } from '../types/snippet';
+import { AiAssistant } from '../components/ai-assistant';
 
 export default function SnippetDetailsScreen() {
   const { colors, spacing, typography, borderRadius } = useAppTheme();
@@ -22,6 +23,8 @@ export default function SnippetDetailsScreen() {
 
   const [snippet, setSnippet] = useState<Snippet | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [botVisible, setBotVisible] = useState(false);
 
   useEffect(() => {
     const fetchSnippet = async () => {
@@ -90,18 +93,19 @@ export default function SnippetDetailsScreen() {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity onPress={() => toggleFavorite(snippet.id)} style={{ marginRight: 20 }}>
-                <Ionicons
-                  name={snippet.isFavorite ? "star" : "star-outline"}
-                  size={24}
-                  color={snippet.isFavorite ? colors.favorite : colors.text}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={24} color={colors.error} />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => setMenuVisible(true)}
+              style={[
+                styles.menuButton,
+                {
+                  backgroundColor: colors.surface || 'rgba(128, 128, 128, 0.1)',
+                  borderColor: colors.border,
+                }
+              ]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="ellipsis-vertical" size={22} color={colors.text} />
+            </TouchableOpacity>
           )
         }}
       />
@@ -173,8 +177,8 @@ export default function SnippetDetailsScreen() {
                   <Ionicons
                     name={
                       file.name.endsWith('.pdf') ? 'document-text-outline' :
-                      (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.js') || file.name.endsWith('.jsx')) ? 'code-working-outline' :
-                      'document-outline'
+                        (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.js') || file.name.endsWith('.jsx')) ? 'code-working-outline' :
+                          'document-outline'
                     }
                     size={20}
                     color={colors.primary}
@@ -199,25 +203,7 @@ export default function SnippetDetailsScreen() {
           </View>
         )}
 
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.primary, borderRadius: borderRadius.md }]}
-            onPress={() => saveCodeFile(snippet)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="save-outline" size={18} color={colors.background} />
-            <Text style={[styles.actionButtonText, { color: colors.background }]}>Save Code File</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.secondary, borderRadius: borderRadius.md }]}
-            onPress={() => shareCodeFile(snippet)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="share-social-outline" size={18} color={colors.background} />
-            <Text style={[styles.actionButtonText, { color: colors.background }]}>Share Code</Text>
-          </TouchableOpacity>
-        </View>
 
         <View style={styles.footer}>
           <Text style={[styles.date, { color: colors.textMuted, fontSize: typography.fontSizes.xs }]}>
@@ -229,14 +215,111 @@ export default function SnippetDetailsScreen() {
         </View>
       </ScrollView>
 
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.menuContainer,
+                {
+                  backgroundColor: colors.surface || '#fff',
+                  borderColor: colors.border,
+                  shadowColor: '#000',
+                },
+              ]}
+            >
+              {/* Option: Favorite */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  toggleFavorite(snippet.id);
+                }}
+              >
+                <Ionicons
+                  name={snippet.isFavorite ? "star" : "star-outline"}
+                  size={20}
+                  color={snippet.isFavorite ? colors.favorite : colors.text}
+                />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>
+                  {snippet.isFavorite ? 'Remove from Favorites' : 'Mark as Favorite'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Option: Edit */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({
+                    pathname: '/save-snippet',
+                    params: { id: snippet.id }
+                  });
+                }}
+              >
+                <Ionicons name="pencil-outline" size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Edit Snippet</Text>
+              </TouchableOpacity>
+
+              {/* Option: Save Code File */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  saveCodeFile(snippet);
+                }}
+              >
+                <Ionicons name="save-outline" size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Save Code File</Text>
+              </TouchableOpacity>
+
+              {/* Option: Share Code */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  shareCodeFile(snippet);
+                }}
+              >
+                <Ionicons name="share-social-outline" size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Share Code</Text>
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
+
+              {/* Option: Delete */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  handleDelete();
+                }}
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.error} />
+                <Text style={[styles.menuItemText, { color: colors.error }]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       <IconButton
-        icon="pencil"
+        icon="chatbubble-ellipses"
         size={24}
         style={styles.fab}
-        onPress={() => router.push({
-          pathname: '/save-snippet',
-          params: { id: snippet.id }
-        })}
+        onPress={() => setBotVisible(true)}
+      />
+
+      <AiAssistant
+        visible={botVisible}
+        onClose={() => setBotVisible(false)}
+        snippet={snippet}
       />
     </View>
   );
@@ -276,11 +359,6 @@ const styles = StyleSheet.create({
   date: {
     fontStyle: 'italic',
     marginBottom: 4,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
   },
   sectionTitle: {
     fontWeight: 'bold',
@@ -348,5 +426,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
+  },
+  menuButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 8,
+    minWidth: 180,
+    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  menuDivider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
   },
 });
