@@ -1,58 +1,41 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { IconButton } from '../components/icon-button';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Input } from '../components/input';
 import { SnippetCard } from '../components/snippet-card';
 import { useSnippetContext } from '../context/use-snippet-context';
 import { useAppTheme } from '../theme';
-import { Logo } from '../components/logo';
 
-export default function HomeScreen() {
+export default function FavouritesScreen() {
   const { colors, spacing } = useAppTheme();
   const { summaries, loading } = useSnippetContext();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
+  const favouriteSummaries = useMemo(() => {
+    return summaries.filter(summary => summary.isFavorite);
+  }, [summaries]);
+
   const filteredSummaries = useMemo(() => {
-    return summaries.filter(summary =>
+    return favouriteSummaries.filter(summary =>
       summary.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       summary.language.toLowerCase().includes(searchQuery.toLowerCase()) ||
       summary.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  }, [summaries, searchQuery]);
+  }, [favouriteSummaries, searchQuery]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
-          headerTitle: () => <Logo size="small" />,
+          title: 'Favourite Snippets',
           headerShown: true,
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity
-                onPress={() => router.push('/favourites')}
-                style={{ marginRight: 16 }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="star-outline" size={24} color={colors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push('/file-manager')}
-                style={{ marginRight: 16 }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="folder-open-outline" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-          )
         }}
       />
 
       <View style={[styles.searchContainer, { paddingHorizontal: spacing.md, paddingTop: spacing.md }]}>
         <Input
-          placeholder="Search snippets, languages, or tags..."
+          placeholder="Search favorites..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           style={styles.searchInput}
@@ -80,19 +63,14 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <View style={styles.center}>
               <Text style={{ color: colors.textMuted }}>
-                {searchQuery ? 'No snippets match your search.' : 'No snippets found.'}
+                {searchQuery 
+                  ? 'No favorite snippets match your search.' 
+                  : 'You haven\'t added any favorites yet.'}
               </Text>
             </View>
           }
         />
       )}
-
-      <IconButton
-        icon="add"
-        size={28}
-        style={styles.fab}
-        onPress={() => router.push('/save-snippet')}
-      />
     </View>
   );
 }
@@ -114,11 +92,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   listContent: {
-    paddingBottom: 100,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
+    paddingBottom: 20,
   },
 });
