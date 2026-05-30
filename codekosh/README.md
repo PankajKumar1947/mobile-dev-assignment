@@ -2,6 +2,8 @@
 
 CodeKosh is a modern, developer-focused mobile application built with Expo, React Native, and TypeScript. It serves as an offline-first code vault, allowing developers to save, organize, manage, and understand code snippets directly on their devices.
 
+[![Demo Video](https://img.shields.io/badge/Demo-Video-red?style=for-the-badge&logo=google-drive)](https://drive.google.com/file/d/1gMo8e8M11rhO02alnk5WdhlnMoJF7ele/view?usp=drivesdk)
+
 ## Core Features
 
 ### 1. Snippet Management
