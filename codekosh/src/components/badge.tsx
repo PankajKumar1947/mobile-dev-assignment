@@ -21,7 +21,7 @@ export const Badge = ({ label, variant = 'default' }: BadgeProps) => {
 
   const getTextColor = () => {
     if (variant === 'default') return colors.text;
-    return colors.background; // Assuming light text on colored bg
+    return '#FFFFFF';
   };
 
   return (

@@ -23,7 +23,7 @@ export const IconButton = ({ icon, size = 24, variant = 'primary', style, ...pro
 
   const getIconColor = () => {
     if (variant === 'surface') return colors.text;
-    return colors.background;
+    return '#FFFFFF';
   };
 
   return (

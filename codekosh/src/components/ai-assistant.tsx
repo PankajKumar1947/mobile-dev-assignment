@@ -139,7 +139,7 @@ export const AiAssistant = ({ visible, onClose, snippet }: AiAssistantProps) => 
                 onSubmitEditing={handleSend}
               />
               <TouchableOpacity style={[styles.sendBtn, { backgroundColor: colors.primary }]} onPress={handleSend}>
-                <Ionicons name="send" size={16} color={colors.background} />
+                <Ionicons name="send" size={16} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>

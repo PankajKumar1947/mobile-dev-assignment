@@ -4,6 +4,7 @@ import { useAlert } from '../context/use-alert-context';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { FileItem } from '../types/file';
+import { useFilePreview } from './use-file-preview';
 
 export const useFileManager = () => {
   const router = useRouter();
@@ -15,11 +16,17 @@ export const useFileManager = () => {
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<string[]>([]);
 
-  const [selectedItem, setSelectedItem] = useState<FileItem | null>(null);
+  const {
+    selectedItem,
+    setSelectedItem,
+    previewVisible,
+    setPreviewVisible,
+    previewContent,
+    previewLoading,
+    handlePreviewFile: hookHandlePreviewFile,
+  } = useFilePreview();
+
   const [itemMenuVisible, setItemMenuVisible] = useState(false);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewContent, setPreviewContent] = useState<string>('');
-  const [previewLoading, setPreviewLoading] = useState(false);
   const [moveCopyVisible, setMoveCopyVisible] = useState(false);
   const [moveCopyAction, setMoveCopyAction] = useState<'move' | 'copy'>('move');
 
@@ -54,7 +61,7 @@ export const useFileManager = () => {
       for (const name of fileNames) {
         const uri = path + (path.endsWith('/') ? '' : '/') + name;
         const info = await FileSystem.getInfoAsync(uri);
-        
+
         fileItems.push({
           name,
           uri,
@@ -85,10 +92,10 @@ export const useFileManager = () => {
 
   const handleGoBack = () => {
     if (currentPath === rootDir) return;
-    
+
     const pathWithoutTrailing = currentPath.endsWith('/') ? currentPath.slice(0, -1) : currentPath;
     const lastSlashIdx = pathWithoutTrailing.lastIndexOf('/');
-    
+
     if (lastSlashIdx !== -1) {
       const parentPath = pathWithoutTrailing.substring(0, lastSlashIdx + 1);
       setCurrentPath(parentPath);
@@ -179,45 +186,7 @@ export const useFileManager = () => {
 
   const handlePreviewFile = async (item: FileItem) => {
     setItemMenuVisible(false);
-
-    const isPdf = item.name.toLowerCase().endsWith('.pdf');
-    if (isPdf) {
-      try {
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (!isAvailable) {
-          showAlert('Error', 'Previewing PDF is not available on this device.');
-          return;
-        }
-        await Sharing.shareAsync(item.uri);
-      } catch (error) {
-        console.error('Error previewing PDF:', error);
-        showAlert('Error', 'Failed to preview PDF.');
-      }
-      return;
-    }
-
-    setPreviewVisible(true);
-    setPreviewLoading(true);
-
-    const isImage = item.name.toLowerCase().endsWith('.jpg') || 
-                    item.name.toLowerCase().endsWith('.png') || 
-                    item.name.toLowerCase().endsWith('.jpeg');
-
-    if (isImage) {
-      setPreviewContent('');
-      setPreviewLoading(false);
-      return;
-    }
-
-    try {
-      const content = await FileSystem.readAsStringAsync(item.uri);
-      setPreviewContent(content);
-    } catch (error) {
-      console.error('Error reading file for preview:', error);
-      setPreviewContent('Failed to load file contents.');
-    } finally {
-      setPreviewLoading(false);
-    }
+    await hookHandlePreviewFile(item);
   };
 
   const handleMoveCopySelect = async (action: 'move' | 'copy') => {
@@ -232,7 +201,7 @@ export const useFileManager = () => {
 
     try {
       const destUri = rootDir + targetFolder + '/' + selectedItem.name;
-      
+
       if (selectedItem.uri === destUri) {
         showAlert('Info', 'Source and target path are the same.');
         setMoveCopyVisible(false);

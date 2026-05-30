@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, TouchableWithoutFeedback } from 'react-native';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useAlert } from '../context/use-alert-context';
 import { Badge } from '../components/badge';
 import { CodeEditor } from '../components/code-editor';
@@ -12,6 +13,9 @@ import { useSnippetOperations } from '../hooks/use-snippet-operations';
 import { useAppTheme } from '../theme';
 import { Snippet } from '../types/snippet';
 import { AiAssistant } from '../components/ai-assistant';
+import { FilePreviewModal } from '../components/file-preview-modal';
+import { FileItemCard } from '../components/file-item-card';
+import { useFilePreview } from '../hooks/use-file-preview';
 
 export default function SnippetDetailsScreen() {
   const { colors, spacing, typography, borderRadius } = useAppTheme();
@@ -25,6 +29,16 @@ export default function SnippetDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
   const [botVisible, setBotVisible] = useState(false);
+
+  // Hook for file previews
+  const {
+    selectedItem,
+    previewVisible,
+    previewContent,
+    previewLoading,
+    handlePreviewFile,
+    closePreview,
+  } = useFilePreview();
 
   useEffect(() => {
     const fetchSnippet = async () => {
@@ -148,57 +162,16 @@ export default function SnippetDetailsScreen() {
               Attached Files (.ts, .tsx, .pdf, etc.)
             </Text>
             {snippet.attachedFiles.map((file, index) => (
-              <TouchableOpacity
+              <FileItemCard
                 key={file.uri + index}
-                style={[
-                  styles.fileRow,
-                  {
-                    borderColor: colors.border,
-                    borderRadius: borderRadius.md,
-                    backgroundColor: colors.surface || '#f9f9f9',
-                  }
-                ]}
-                onPress={async () => {
-                  try {
-                    const isAvailable = await Sharing.isAvailableAsync();
-                    if (!isAvailable) {
-                      showAlert('Error', 'Sharing is not available on this device.');
-                      return;
-                    }
-                    await Sharing.shareAsync(file.uri);
-                  } catch (err) {
-                    console.error('Error sharing file:', err);
-                    showAlert('Error', 'Failed to share file.');
-                  }
+                item={{
+                  name: file.name,
+                  uri: file.uri,
+                  isDirectory: false,
+                  size: file.size,
                 }}
-                activeOpacity={0.7}
-              >
-                <View style={styles.fileInfo}>
-                  <Ionicons
-                    name={
-                      file.name.endsWith('.pdf') ? 'document-text-outline' :
-                        (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.js') || file.name.endsWith('.jsx')) ? 'code-working-outline' :
-                          'document-outline'
-                    }
-                    size={20}
-                    color={colors.primary}
-                  />
-                  <View style={styles.fileNameContainer}>
-                    <Text numberOfLines={1} style={[styles.fileName, { color: colors.text }]}>
-                      {file.name}
-                    </Text>
-                    {file.size && (
-                      <Text style={[styles.fileSize, { color: colors.textMuted || '#888' }]}>
-                        {file.size > 1024 * 1024
-                          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-                          : `${(file.size / 1024).toFixed(1)} KB`
-                        }
-                      </Text>
-                    )}
-                  </View>
-                </View>
-                <Ionicons name="share-outline" size={18} color={colors.primary} />
-              </TouchableOpacity>
+                onPress={handlePreviewFile}
+              />
             ))}
           </View>
         )}
@@ -320,6 +293,14 @@ export default function SnippetDetailsScreen() {
         visible={botVisible}
         onClose={() => setBotVisible(false)}
         snippet={snippet}
+      />
+
+      <FilePreviewModal
+        visible={previewVisible}
+        item={selectedItem}
+        content={previewContent}
+        loading={previewLoading}
+        onClose={closePreview}
       />
     </View>
   );
