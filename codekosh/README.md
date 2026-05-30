@@ -1,56 +1,99 @@
-# Welcome to your Expo app 👋
+# CodeKosh
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+CodeKosh is a modern, developer-focused mobile application built with Expo, React Native, and TypeScript. It serves as an offline-first code vault, allowing developers to save, organize, manage, and understand code snippets directly on their devices.
 
-## Get started
+## Core Features
 
-1. Install dependencies
+### 1. Snippet Management
+- Full CRUD: Create, edit, and delete code snippets with ease.
+- Rich Metadata: Each snippet supports a title, description, programming language, and custom tags.
+- Organization: Efficiently browse and search through your collection using titles, languages, or tags.
+- Favorites: Mark your most important snippets as favorites for quick access in a dedicated screen.
 
+### 2. Offline-First Architecture
+- SQLite Database: Core data persistence is handled by a robust local SQLite database.
+- Total Offline Access: Create, edit, search, and view snippets without any internet connection.
+- Data Integrity: Uses relational tables with foreign key constraints to manage snippet attachments.
+
+### 3. File Management
+- Local Vault: Built using Expo FileSystem for a native file management experience.
+- Attachments: Attach screenshots, PDFs, or source files directly to your snippets.
+- File Browser: Browse, view, and manage stored files within the app.
+- Local Storage: Save snippets as physical code files on your device's filesystem.
+
+### 4. AI Code Assistant
+- Real-time Explanations: Powered by Mistral AI to provide deep insights into your code.
+- Summaries & Suggestions: Get concise summaries and improvement suggestions for any snippet.
+- Streaming Interface: A responsive chat-like experience for interacting with the AI.
+
+### 5. Export & Sharing
+- Universal Sharing: Share code snippets directly to other applications.
+- File Export: Export snippets as .txt, .js, .ts, and more.
+- Local Persistence: Save exported files directly to the device's storage.
+
+---
+
+## Technical Implementation
+
+### Database Structure
+The app utilizes SQLite (expo-sqlite) for relational data storage:
+- snippets Table: Stores metadata including id, title, description, code, language, tags (JSON), isFavorite, and timestamps.
+- snippet_attachments Table: Manages file attachments with columns for name, uri, type, and size, linked via snippetId with ON DELETE CASCADE.
+
+### Offline Storage Strategy
+- Primary Store: SQLite handles all structured snippet and attachment data.
+- Preferences: AsyncStorage is used for non-sensitive application state like themes.
+- Security: Sensitive data and API configurations are managed via environment variables and secure practices.
+- Migration Path: The app includes a robust migration service (DatabaseInitService) that handles schema updates and legacy data migration from AsyncStorage to SQLite.
+
+### File Management Implementation
+Using Expo FileSystem, CodeKosh creates a dedicated directory structure for each snippet. This ensures that:
+- Files are isolated and organized.
+- Deleting a snippet automatically cleans up its associated physical files.
+- Users can preview attachments (PDFs, Images, Code) directly within the app.
+
+### AI Integration Workflow
+CodeKosh uses Expo Router API Routes to proxy requests to the Mistral AI API:
+1. Request: The client sends the snippet and user query to /api/chat.
+2. Context: The server injects the snippet code and language into a system prompt for the AI.
+3. Streaming: The response is streamed back to the AiAssistant component using a ReadableStream, providing a fast and interactive UX.
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- Expo Go app on your mobile device or an Emulator (Android/iOS)
+
+### Installation
+1. Clone the repository
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-2. Start the app
-
+3. Create a .env file based on .example.env and add your MISTRAL_API_KEY.
+4. Start the application:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Screenshots
+<div style="display: flex; flex-wrap: wrap; gap: 5px;">
+  <img src="./screenshots/1.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/2.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/3.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/4.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/5.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/6.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/7.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/8.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/9.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/10.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/11.jpeg" width="180" style="margin: 0;" />
+  <img src="./screenshots/12.jpeg" width="180" style="margin: 0;" />
+</div>
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
