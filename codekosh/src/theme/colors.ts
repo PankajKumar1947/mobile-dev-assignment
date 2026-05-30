@@ -1,62 +1,71 @@
-/**
- * Nord Color Palette
- * https://www.nordtheme.com/docs/colors-and-palettes
- */
 export const Colors = {
-  // Polar Night
-  nord0: '#2E3440',
-  nord1: '#3B4252',
-  nord2: '#434C5E',
-  nord3: '#4C566A',
+  // Backgrounds
+  bg: '#1E1E1E',
+  bgSecondary: '#252526',
+  bgTertiary: '#2D2D30',
 
-  // Snow Storm
-  nord4: '#D8DEE9',
-  nord5: '#E5E9F0',
-  nord6: '#ECEFF4',
+  // Borders
+  border: '#3E3E42',
 
-  // Frost
-  nord7: '#8FBCBB',
-  nord8: '#88C0D0',
-  nord9: '#81A1C1',
-  nord10: '#5E81AC',
+  // Text
+  text: '#D4D4D4',
+  textMuted: '#9DA1A6',
+  textSubtle: '#6A737D',
 
-  // Aurora
-  nord11: '#BF616A',
-  nord12: '#D08770',
-  nord13: '#EBCB8B',
-  nord14: '#A3BE8C',
-  nord15: '#B48EAD',
+  // VS Code Accents
+  blue: '#007ACC',
+  blueLight: '#4FC1FF',
+
+  green: '#4EC9B0',
+  orange: '#CE9178',
+  yellow: '#DCDCAA',
+  red: '#F14C4C',
+  purple: '#C586C0',
+  cyan: '#4EC9B0',
+  pink: '#D16D9E',
 };
 
 export const theme = {
   light: {
-    background: Colors.nord6,
-    surface: Colors.nord5,
-    primary: Colors.nord10,
-    secondary: Colors.nord9,
-    text: Colors.nord0,
-    textMuted: Colors.nord3,
-    border: Colors.nord4,
-    error: Colors.nord11,
-    warning: Colors.nord13,
-    success: Colors.nord14,
-    favorite: Colors.nord14,
-    accent: Colors.nord8,
-    codeBackground: Colors.nord5, // Lighter for light mode
+    background: '#FFFFFF',
+    surface: '#F3F3F3',
+    primary: Colors.blue,
+    secondary: Colors.purple,
+
+    text: '#1F2328',
+    textMuted: '#57606A',
+
+    border: '#D0D7DE',
+
+    success: '#2DA44E',
+    warning: '#BF8700',
+    error: '#CF222E',
+
+    favorite: Colors.purple,
+    accent: Colors.blueLight,
+
+    codeBackground: '#F6F8FA',
   },
+
   dark: {
-    background: Colors.nord0,
-    surface: Colors.nord1,
-    primary: Colors.nord8,
-    secondary: Colors.nord9,
-    text: Colors.nord6,
-    textMuted: Colors.nord4,
-    border: Colors.nord2,
-    error: Colors.nord11,
-    warning: Colors.nord13,
-    success: Colors.nord14,
-    favorite: Colors.nord14,
-    accent: Colors.nord7,
-    codeBackground: '#242933', // Even darker for dark mode (Nord inspired)
+    background: Colors.bg,
+    surface: Colors.bgSecondary,
+
+    primary: Colors.blue,
+    secondary: Colors.purple,
+
+    text: Colors.text,
+    textMuted: Colors.textMuted,
+
+    border: Colors.border,
+
+    success: Colors.green,
+    warning: Colors.yellow,
+    error: Colors.red,
+
+    favorite: Colors.purple,
+    accent: Colors.blueLight,
+
+    codeBackground: '#181818',
   },
 };

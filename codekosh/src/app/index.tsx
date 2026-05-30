@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../theme';
+import { Logo } from '../components/logo';
 
 export default function SplashScreen() {
   const { colors } = useAppTheme();
@@ -23,7 +24,6 @@ export default function SplashScreen() {
       }),
     ]).start();
 
-    // Simulate loading or check for initialization
     const timer = setTimeout(() => {
       router.replace('/home');
     }, 3000);
@@ -42,11 +42,7 @@ export default function SplashScreen() {
           }
         ]}
       >
-        <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.logoText, { color: colors.background }]}>{'< />'}</Text>
-        </View>
-
-        <Text style={[styles.title, { color: colors.text }]}>CodeKosh</Text>
+        <Logo size="large" />
         <Text style={[styles.subtitle, { color: colors.textMuted }]}>
           Your Offline Code Vault
         </Text>
@@ -69,29 +65,6 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-  },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  logoText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    letterSpacing: 1,
   },
   subtitle: {
     fontSize: 16,

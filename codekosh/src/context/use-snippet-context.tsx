@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Snippet, SnippetSummary, CreateSnippet, UpdateSnippet } from '../types/snippet';
 import { DatabaseService } from '../services/database.service';
-import { DatabaseInitService } from '../config/database-init';
+import { DatabaseInitService } from '../database/init';
 import * as FileSystem from 'expo-file-system/legacy';
 
 interface SnippetContextType {

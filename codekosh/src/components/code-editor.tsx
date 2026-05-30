@@ -2,12 +2,11 @@ import BaseCodeEditor, {
   CodeEditorStyleType,
   CodeEditorSyntaxStyles,
 } from '@rivascva/react-native-code-editor';
-// @ts-ignore
-import SyntaxHighlighter from '@rivascva/react-native-code-editor/lib/commonjs/SyntaxHighlighter';
 import React from 'react';
 import { Platform, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useAppTheme } from '../theme';
 import { ProgrammingLanguage } from '../types/snippet';
+import { CodeHighlighter } from './code-highlighter';
 
 export interface CodeEditorProps {
   initialValue?: string;
@@ -58,13 +57,14 @@ export const CodeEditor = ({
             borderColor: colors.border,
             borderRadius: borderRadius.md,
             backgroundColor: colors.codeBackground,
-            minHeight,
-            height,
+            minHeight: readOnly ? undefined : minHeight,
+            height: readOnly ? undefined : height,
+            maxHeight: readOnly ? 400 : undefined,
           },
         ]}
       >
         {readOnly ? (
-          <SyntaxHighlighter
+          <CodeHighlighter
             language={language}
             syntaxStyle={resolvedSyntaxStyle}
             scrollEnabled={true}
@@ -79,7 +79,7 @@ export const CodeEditor = ({
             }}
           >
             {activeValue}
-          </SyntaxHighlighter>
+          </CodeHighlighter>
         ) : (
           <BaseCodeEditor
             initialValue={activeValue}

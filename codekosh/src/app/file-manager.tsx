@@ -4,7 +4,6 @@ import React from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -55,14 +54,16 @@ export default function FileManagerScreen() {
           headerLeft: () => (
             <TouchableOpacity
               onPress={handleHeaderBack}
-              style={{ marginLeft: Platform.OS === 'ios' ? 0 : 4, padding: 8 }}
+              style={[
+                styles.backButton,
+                {
+                  backgroundColor: colors.surface || 'rgba(128, 128, 128, 0.1)',
+                  borderColor: colors.border,
+                }
+              ]}
               activeOpacity={0.7}
             >
-              <Ionicons
-                name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
-                size={24}
-                color={colors.text}
-              />
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
             </TouchableOpacity>
           ),
         }}
@@ -145,5 +146,14 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 40,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
 });

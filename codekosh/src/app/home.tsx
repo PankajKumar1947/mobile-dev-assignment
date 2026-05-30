@@ -7,9 +7,10 @@ import { Input } from '../components/input';
 import { SnippetCard } from '../components/snippet-card';
 import { useSnippetContext } from '../context/use-snippet-context';
 import { useAppTheme } from '../theme';
+import { Logo } from '../components/logo';
 
 export default function HomeScreen() {
-  const { colors, spacing, typography } = useAppTheme();
+  const { colors, spacing } = useAppTheme();
   const { summaries, loading } = useSnippetContext();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
-          title: 'CodeKosh',
+          headerTitle: () => <Logo size="small" />,
           headerShown: true,
           headerRight: () => (
             <TouchableOpacity

@@ -179,6 +179,23 @@ export const useFileManager = () => {
 
   const handlePreviewFile = async (item: FileItem) => {
     setItemMenuVisible(false);
+
+    const isPdf = item.name.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
+      try {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (!isAvailable) {
+          showAlert('Error', 'Previewing PDF is not available on this device.');
+          return;
+        }
+        await Sharing.shareAsync(item.uri);
+      } catch (error) {
+        console.error('Error previewing PDF:', error);
+        showAlert('Error', 'Failed to preview PDF.');
+      }
+      return;
+    }
+
     setPreviewVisible(true);
     setPreviewLoading(true);
 

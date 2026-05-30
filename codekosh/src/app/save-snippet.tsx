@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +22,7 @@ import { LANGUAGES } from '../types/languages';
 
 export default function SaveSnippetScreen() {
   const { colors, spacing, typography, borderRadius } = useAppTheme();
+  const router = useRouter();
   const {
     isEditing,
     title, setTitle,
@@ -30,11 +30,10 @@ export default function SaveSnippetScreen() {
     language, setLanguage,
     code, setCode,
     tags, setTags,
-    screenshotUri,
-    tempScreenshotUri,
+    attachedFiles,
     loading,
-    pickScreenshot,
-    removeScreenshot,
+    pickFiles,
+    removeFile,
     save,
   } = useSaveSnippet();
 
@@ -58,6 +57,21 @@ export default function SaveSnippetScreen() {
             options={{
               title: isEditing ? 'Edit Snippet' : 'Create Snippet',
               headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity
+                  onPress={() => router.back()}
+                  style={[
+                    styles.backButton,
+                    {
+                      backgroundColor: colors.surface || 'rgba(128, 128, 128, 0.1)',
+                      borderColor: colors.border,
+                    }
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="chevron-back" size={22} color={colors.text} />
+                </TouchableOpacity>
+              ),
             }}
           />
 
@@ -101,31 +115,64 @@ export default function SaveSnippetScreen() {
             onChangeText={setTags}
           />
 
-          <View style={styles.screenshotSection}>
+          <View style={styles.filesSection}>
             <Text style={[styles.label, { color: colors.text, fontSize: typography.fontSizes.sm }]}>
-              Screenshot Attachment
+              File Attachments (.ts, .tsx, .pdf, etc.)
             </Text>
-            {screenshotUri || tempScreenshotUri ? (
-              <View style={[styles.imageContainer, { borderColor: colors.border, borderRadius: borderRadius.md }]}>
-                <Image source={{ uri: tempScreenshotUri || screenshotUri }} style={styles.screenshotPreview} />
+            
+            {attachedFiles.map((file, index) => (
+              <View 
+                key={file.uri + index} 
+                style={[
+                  styles.fileRow, 
+                  { 
+                    borderColor: colors.border, 
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.surface || '#f9f9f9'
+                  }
+                ]}
+              >
+                <View style={styles.fileInfo}>
+                  <Ionicons 
+                    name={
+                      file.name.endsWith('.pdf') ? 'document-text-outline' :
+                      (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.js') || file.name.endsWith('.jsx')) ? 'code-working-outline' :
+                      'document-outline'
+                    } 
+                    size={20} 
+                    color={colors.primary} 
+                  />
+                  <View style={styles.fileNameContainer}>
+                    <Text numberOfLines={1} style={[styles.fileName, { color: colors.text }]}>
+                      {file.name}
+                    </Text>
+                    {file.size && (
+                      <Text style={[styles.fileSize, { color: colors.textMuted || '#888' }]}>
+                        {file.size > 1024 * 1024 
+                          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+                          : `${(file.size / 1024).toFixed(1)} KB`
+                        }
+                      </Text>
+                    )}
+                  </View>
+                </View>
                 <TouchableOpacity
-                  style={[styles.removeButton, { backgroundColor: colors.error }]}
-                  onPress={removeScreenshot}
+                  style={[styles.removeFileButton]}
+                  onPress={() => removeFile(index)}
                 >
-                  <Ionicons name="trash-outline" size={16} color="white" />
-                  <Text style={styles.removeButtonText}>Remove</Text>
+                  <Ionicons name="close-circle" size={20} color={colors.error} />
                 </TouchableOpacity>
               </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.uploadButton, { borderColor: colors.border, borderRadius: borderRadius.md }]}
-                onPress={pickScreenshot}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="camera-outline" size={24} color={colors.primary} />
-                <Text style={[styles.uploadButtonText, { color: colors.text }]}>Attach Screenshot</Text>
-              </TouchableOpacity>
-            )}
+            ))}
+
+            <TouchableOpacity
+              style={[styles.uploadButton, { borderColor: colors.border, borderRadius: borderRadius.md, marginTop: 8 }]}
+              onPress={pickFiles}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="document-attach-outline" size={24} color={colors.primary} />
+              <Text style={[styles.uploadButtonText, { color: colors.text }]}>Attach Files</Text>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -167,34 +214,10 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontWeight: 'bold',
   },
-  screenshotSection: {
+  filesSection: {
     marginBottom: 20,
     width: '100%',
-  },
-  imageContainer: {
-    borderWidth: 1,
-    padding: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  screenshotPreview: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-  removeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 6,
-  },
-  removeButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    marginLeft: 4,
-    fontSize: 12,
+    marginTop: 20,
   },
   uploadButton: {
     borderWidth: 1,
@@ -208,5 +231,42 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     marginLeft: 8,
     fontWeight: '500',
+  },
+  fileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  fileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  fileNameContainer: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  fileSize: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  removeFileButton: {
+    padding: 4,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
 });

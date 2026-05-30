@@ -8,6 +8,13 @@ export type ProgrammingLanguage =
   | 'css' 
   | 'markdown';
 
+export interface AttachedFile {
+  name: string;
+  uri: string;
+  type?: string;
+  size?: number;
+}
+
 export interface SnippetSummary {
   id: string;
   title: string;
@@ -16,7 +23,7 @@ export interface SnippetSummary {
   tags: string[];
   isFavorite: boolean;
   createdAt: number;
-  screenshotUri?: string;
+  attachedFiles?: AttachedFile[];
 }
 
 export interface Snippet extends SnippetSummary {

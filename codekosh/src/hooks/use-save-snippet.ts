@@ -1,10 +1,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useAlert } from '../context/use-alert-context';
 import { useSnippetContext } from '../context/use-snippet-context';
-import { ProgrammingLanguage } from '../types/snippet';
+import { ProgrammingLanguage, AttachedFile } from '../types/snippet';
 
 export const useSaveSnippet = () => {
   const { createSnippet, updateSnippet, getSnippetById } = useSnippetContext();
@@ -21,8 +21,7 @@ export const useSaveSnippet = () => {
   const [language, setLanguage] = useState<ProgrammingLanguage>('typescript');
   const [code, setCode] = useState('');
   const [tags, setTags] = useState('');
-  const [screenshotUri, setScreenshotUri] = useState<string | undefined>(undefined);
-  const [tempScreenshotUri, setTempScreenshotUri] = useState<string | undefined>(undefined);
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [loading, setLoading] = useState(isEditing);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export const useSaveSnippet = () => {
           setLanguage(snippet.language);
           setCode(snippet.code);
           setTags(snippet.tags.join(', '));
-          setScreenshotUri(snippet.screenshotUri);
+          setAttachedFiles(snippet.attachedFiles || []);
         }
         setLoading(false);
       };
@@ -44,27 +43,31 @@ export const useSaveSnippet = () => {
     }
   }, [id, isEditing, getSnippetById]);
 
-  const pickScreenshot = async () => {
+  const pickFiles = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images',
-        allowsEditing: true,
-        quality: 0.8,
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+        multiple: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setTempScreenshotUri(result.assets[0].uri);
-        setScreenshotUri(undefined);
+        const newFiles: AttachedFile[] = result.assets.map(asset => ({
+          name: asset.name,
+          uri: asset.uri,
+          type: asset.mimeType || undefined,
+          size: asset.size || undefined,
+        }));
+        setAttachedFiles(prev => [...prev, ...newFiles]);
       }
     } catch (error) {
-      console.error('Error picking screenshot:', error);
-      showAlert('Error', 'Failed to pick image.');
+      console.error('Error picking files:', error);
+      showAlert('Error', 'Failed to pick files.');
     }
   };
 
-  const removeScreenshot = () => {
-    setScreenshotUri(undefined);
-    setTempScreenshotUri(undefined);
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const save = async () => {
@@ -75,6 +78,8 @@ export const useSaveSnippet = () => {
       const folderName = `${title.replace(/[^a-zA-Z0-9]/g, '_') || 'Unnamed'}_${snippetId}`;
       const folderPath = FileSystem.documentDirectory + 'snippets/' + folderName + '/';
 
+      let currentAttachedFiles = [...attachedFiles];
+
       if (isEditing && oldTitle && title !== oldTitle) {
         const oldFolderName = `${oldTitle.replace(/[^a-zA-Z0-9]/g, '_') || 'Unnamed'}_${snippetId}`;
         const oldFolderPath = FileSystem.documentDirectory + 'snippets/' + oldFolderName + '/';
@@ -82,10 +87,13 @@ export const useSaveSnippet = () => {
         if (oldDirInfo.exists) {
           try {
             await FileSystem.moveAsync({ from: oldFolderPath, to: folderPath });
-            if (screenshotUri && screenshotUri.startsWith(oldFolderPath)) {
-              const fileName = screenshotUri.substring(screenshotUri.lastIndexOf('/') + 1);
-              setScreenshotUri(folderPath + fileName);
-            }
+            currentAttachedFiles = currentAttachedFiles.map(file => {
+              if (file.uri.startsWith(oldFolderPath)) {
+                const fileName = file.uri.substring(file.uri.lastIndexOf('/') + 1);
+                return { ...file, uri: folderPath + fileName };
+              }
+              return file;
+            });
           } catch (moveErr) {
             console.error('Error renaming folder:', moveErr);
           }
@@ -97,28 +105,40 @@ export const useSaveSnippet = () => {
         await FileSystem.makeDirectoryAsync(folderPath, { intermediates: true });
       }
 
-      let finalScreenshotUri = screenshotUri;
-
-      if (tempScreenshotUri) {
-        if (screenshotUri) {
-          try {
-            await FileSystem.deleteAsync(screenshotUri, { idempotent: true });
-          } catch (e) { }
+      // Handle copy and cleanup of attachedFiles
+      const finalAttachedFiles: AttachedFile[] = [];
+      for (const file of currentAttachedFiles) {
+        if (file.uri.startsWith(folderPath)) {
+          // Already stored in snippet folder
+          finalAttachedFiles.push(file);
+        } else {
+          // Temporary/cached file, copy to snippet folder
+          const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const destUri = `${folderPath}${Date.now()}_${safeName}`;
+          await FileSystem.copyAsync({ from: file.uri, to: destUri });
+          finalAttachedFiles.push({
+            name: file.name,
+            uri: destUri,
+            type: file.type,
+            size: file.size,
+          });
         }
-        const fileName = `screenshot_${Date.now()}.jpg`;
-        const destUri = folderPath + fileName;
-        await FileSystem.copyAsync({ from: tempScreenshotUri, to: destUri });
-        finalScreenshotUri = destUri;
-      } else if (screenshotUri === undefined && !tempScreenshotUri) {
-        try {
-          const files = await FileSystem.readDirectoryAsync(folderPath);
-          for (const file of files) {
-            if (file.startsWith('screenshot_')) {
-              await FileSystem.deleteAsync(folderPath + file, { idempotent: true });
-            }
+      }
+
+      // Cleanup files no longer attached
+      try {
+        const filesInDir = await FileSystem.readDirectoryAsync(folderPath);
+        const activeUris = new Set([
+          ...finalAttachedFiles.map(f => f.uri),
+        ]);
+        for (const filename of filesInDir) {
+          const fullUri = folderPath + filename;
+          if (!activeUris.has(fullUri)) {
+            await FileSystem.deleteAsync(fullUri, { idempotent: true });
           }
-        } catch (e) { }
-        finalScreenshotUri = undefined;
+        }
+      } catch (cleanupErr) {
+        console.error('Error cleaning up files in snippet directory:', cleanupErr);
       }
 
       const tagsArray = tags.split(',').map(t => t.trim()).filter(t => t !== '');
@@ -130,7 +150,7 @@ export const useSaveSnippet = () => {
           language,
           code,
           tags: tagsArray,
-          screenshotUri: finalScreenshotUri,
+          attachedFiles: finalAttachedFiles,
         });
       } else {
         await createSnippet({
@@ -141,7 +161,7 @@ export const useSaveSnippet = () => {
           code,
           tags: tagsArray,
           isFavorite: false,
-          screenshotUri: finalScreenshotUri,
+          attachedFiles: finalAttachedFiles,
         });
       }
 
@@ -167,11 +187,10 @@ export const useSaveSnippet = () => {
     setCode,
     tags,
     setTags,
-    screenshotUri,
-    tempScreenshotUri,
+    attachedFiles,
     loading,
-    pickScreenshot,
-    removeScreenshot,
+    pickFiles,
+    removeFile,
     save,
   };
 };

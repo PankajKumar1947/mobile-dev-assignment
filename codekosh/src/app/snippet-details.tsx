@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import { useAlert } from '../context/use-alert-context';
 import { Badge } from '../components/badge';
 import { CodeEditor } from '../components/code-editor';
@@ -12,7 +13,7 @@ import { useAppTheme } from '../theme';
 import { Snippet } from '../types/snippet';
 
 export default function SnippetDetailsScreen() {
-  const { colors, spacing, typography, borderRadius, isDark } = useAppTheme();
+  const { colors, spacing, typography, borderRadius } = useAppTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getSnippetById, deleteSnippet, toggleFavorite } = useSnippetContext();
   const { showAlert } = useAlert();
@@ -73,6 +74,21 @@ export default function SnippetDetailsScreen() {
       <Stack.Screen
         options={{
           title: 'Details',
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={[
+                styles.backButton,
+                {
+                  backgroundColor: colors.surface || 'rgba(128, 128, 128, 0.1)',
+                  borderColor: colors.border,
+                }
+              ]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity onPress={() => toggleFavorite(snippet.id)} style={{ marginRight: 20 }}>
@@ -81,7 +97,6 @@ export default function SnippetDetailsScreen() {
                   size={24}
                   color={snippet.isFavorite ? colors.favorite : colors.text}
                 />
-
               </TouchableOpacity>
               <TouchableOpacity onPress={handleDelete}>
                 <Ionicons name="trash-outline" size={24} color={colors.error} />
@@ -96,7 +111,6 @@ export default function SnippetDetailsScreen() {
           <Text style={[styles.title, { color: colors.text, fontSize: typography.fontSizes['2xl'] }]}>
             {snippet.title}
           </Text>
-          <Badge label={snippet.language} variant="primary" />
         </View>
 
         {snippet.description && (
@@ -111,22 +125,79 @@ export default function SnippetDetailsScreen() {
           ))}
         </View>
 
-        {snippet.screenshotUri && (
-          <View style={styles.screenshotContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.fontSizes.sm }]}>
-              Attached Screenshot
-            </Text>
-            <Image source={{ uri: snippet.screenshotUri }} style={[styles.screenshot, { borderRadius: borderRadius.md, borderColor: colors.border }]} />
-          </View>
-        )}
+        <View style={styles.languageContainer}>
+          <Text style={[styles.languageText, { color: colors.textMuted || '#888', fontSize: typography.fontSizes.xs, fontWeight: 'bold', textTransform: 'capitalize' }]}>
+            {snippet.language}
+          </Text>
+        </View>
 
         <CodeEditor
           language={snippet.language}
           initialValue={snippet.code}
           readOnly
-          height={300}
           style={styles.codeContainer}
         />
+
+        {snippet.attachedFiles && snippet.attachedFiles.length > 0 && (
+          <View style={styles.filesContainer}>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.fontSizes.sm }]}>
+              Attached Files (.ts, .tsx, .pdf, etc.)
+            </Text>
+            {snippet.attachedFiles.map((file, index) => (
+              <TouchableOpacity
+                key={file.uri + index}
+                style={[
+                  styles.fileRow,
+                  {
+                    borderColor: colors.border,
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.surface || '#f9f9f9',
+                  }
+                ]}
+                onPress={async () => {
+                  try {
+                    const isAvailable = await Sharing.isAvailableAsync();
+                    if (!isAvailable) {
+                      showAlert('Error', 'Sharing is not available on this device.');
+                      return;
+                    }
+                    await Sharing.shareAsync(file.uri);
+                  } catch (err) {
+                    console.error('Error sharing file:', err);
+                    showAlert('Error', 'Failed to share file.');
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.fileInfo}>
+                  <Ionicons
+                    name={
+                      file.name.endsWith('.pdf') ? 'document-text-outline' :
+                      (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.js') || file.name.endsWith('.jsx')) ? 'code-working-outline' :
+                      'document-outline'
+                    }
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <View style={styles.fileNameContainer}>
+                    <Text numberOfLines={1} style={[styles.fileName, { color: colors.text }]}>
+                      {file.name}
+                    </Text>
+                    {file.size && (
+                      <Text style={[styles.fileSize, { color: colors.textMuted || '#888' }]}>
+                        {file.size > 1024 * 1024
+                          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                          : `${(file.size / 1024).toFixed(1)} KB`
+                        }
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                <Ionicons name="share-outline" size={18} color={colors.primary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <View style={styles.actionsRow}>
           <TouchableOpacity
@@ -211,19 +282,9 @@ const styles = StyleSheet.create({
     bottom: 30,
     right: 30,
   },
-  screenshotContainer: {
-    marginBottom: 20,
-    width: '100%',
-  },
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 8,
-  },
-  screenshot: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'contain',
-    borderWidth: 1,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -242,5 +303,50 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  filesContainer: {
+    marginBottom: 24,
+    width: '100%',
+  },
+  fileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  fileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  fileNameContainer: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  fileSize: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  languageContainer: {
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  languageText: {
+    fontSize: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
 });
