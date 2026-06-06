@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Vector3D } from "../utils/sensor-math";
-import { Theme } from "../constants/theme";
+import { ThemeType } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 
 interface SensorChartProps {
   accel: Vector3D;
@@ -9,6 +10,9 @@ interface SensorChartProps {
 }
 
 export function SensorChart({ accel, gyro }: SensorChartProps) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const gX = accel.x / 9.81;
   const gY = accel.y / 9.81;
 
@@ -47,7 +51,7 @@ export function SensorChart({ accel, gyro }: SensorChartProps) {
               <Text style={styles.metricValue}>{accelMag.toFixed(2)} G</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${Math.min(100, accelMag * 50)}%`, backgroundColor: accelMag > 0.4 ? Theme.colors.danger : Theme.colors.success }]} />
+              <View style={[styles.progressBarFill, { width: `${Math.min(100, accelMag * 50)}%`, backgroundColor: accelMag > 0.4 ? theme.colors.danger : theme.colors.success }]} />
             </View>
           </View>
 
@@ -57,7 +61,7 @@ export function SensorChart({ accel, gyro }: SensorChartProps) {
               <Text style={styles.metricValue}>{gyroMag.toFixed(2)} rad/s</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${Math.min(100, gyroMag * 50)}%`, backgroundColor: gyroMag > 1.0 ? Theme.colors.warning : Theme.colors.primary }]} />
+              <View style={[styles.progressBarFill, { width: `${Math.min(100, gyroMag * 50)}%`, backgroundColor: gyroMag > 1.0 ? theme.colors.warning : theme.colors.primary }]} />
             </View>
           </View>
         </View>
@@ -66,14 +70,14 @@ export function SensorChart({ accel, gyro }: SensorChartProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 16,
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   grid: {
     flexDirection: "row",
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapTitle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "700",
     marginBottom: 10,
@@ -99,12 +103,12 @@ const styles = StyleSheet.create({
     borderColor: "#475569",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     position: "relative",
   },
   circleLine: {
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     borderStyle: "dashed",
     position: "absolute",
   },
@@ -112,21 +116,21 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 100,
     height: 1,
-    backgroundColor: Theme.colors.border,
+    backgroundColor: theme.colors.border,
   },
   crosshairV: {
     position: "absolute",
     height: 100,
     width: 1,
-    backgroundColor: Theme.colors.border,
+    backgroundColor: theme.colors.border,
   },
   gDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Theme.colors.danger,
+    backgroundColor: theme.colors.danger,
     position: "absolute",
-    shadowColor: Theme.colors.danger,
+    shadowColor: theme.colors.danger,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
@@ -138,7 +142,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   gText: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 10,
     fontWeight: "600",
   },
@@ -156,18 +160,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metricLabel: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 12,
     fontWeight: "500",
   },
   metricValue: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     borderRadius: 3,
     overflow: "hidden",
   },

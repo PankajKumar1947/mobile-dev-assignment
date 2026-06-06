@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from "rea
 import { Award, Flame, Navigation, Clock, Activity, Brain } from "lucide-react-native";
 import { DriveSession } from "../services/storage";
 import { EVENT_METADATA } from "../utils/event-detector";
-import { Theme, getScoreColor } from "../constants/theme";
+import { ThemeType, getScoreColor } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 import { getAiFeedback, formatDuration } from "../utils/driving-helpers";
 
 interface DriveSummaryProps {
@@ -13,9 +14,12 @@ interface DriveSummaryProps {
 }
 
 export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   if (!session) return null;
 
-  const scoreColor = getScoreColor(session.score);
+  const scoreColor = getScoreColor(session.score, theme.colors);
 
   const eventCounts: Record<string, number> = {};
   session.events.forEach((e) => {
@@ -42,19 +46,19 @@ export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
 
             <View style={styles.statsGrid}>
               <View style={styles.statBox}>
-                <Clock color={Theme.colors.primary} size={20} />
+                <Clock color={theme.colors.primary} size={20} />
                 <Text style={styles.statValue}>{timeDisplay}</Text>
                 <Text style={styles.statLabel}>Duration</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Navigation color={Theme.colors.success} size={20} />
+                <Navigation color={theme.colors.success} size={20} />
                 <Text style={styles.statValue}>{session.distance?.toFixed(2)} km</Text>
                 <Text style={styles.statLabel}>Est. Distance</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Activity color={Theme.colors.warning} size={20} />
+                <Activity color={theme.colors.warning} size={20} />
                 <Text style={styles.statValue}>{session.events.length}</Text>
                 <Text style={styles.statLabel}>Total Events</Text>
               </View>
@@ -62,7 +66,7 @@ export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
 
             <View style={styles.feedbackContainer}>
               <View style={styles.feedbackHeader}>
-                <Brain color={Theme.colors.accent} size={18} />
+                <Brain color={theme.colors.accent} size={18} />
                 <Text style={styles.feedbackTitle}>AI Driving Insights</Text>
               </View>
               <Text style={styles.feedbackText}>{aiFeedbackText}</Text>
@@ -72,7 +76,7 @@ export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
               <Text style={styles.sectionTitle}>Event Breakdown</Text>
               {session.events.length === 0 ? (
                 <View style={styles.emptyEvents}>
-                  <Award color={Theme.colors.success} size={36} />
+                  <Award color={theme.colors.success} size={36} />
                   <Text style={styles.emptyText}>Excellent drive! No unsafe events detected.</Text>
                 </View>
               ) : (
@@ -81,7 +85,7 @@ export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
                   return (
                     <View key={type} style={styles.breakdownRow}>
                       <View style={styles.breakdownNameCol}>
-                        <Flame color={Theme.colors.danger} size={16} />
+                        <Flame color={theme.colors.danger} size={16} />
                         <Text style={styles.breakdownName}>{meta?.name || type}</Text>
                       </View>
                       <Text style={styles.breakdownCount}>{count}x</Text>
@@ -103,20 +107,20 @@ export function DriveSummary({ session, visible, onClose }: DriveSummaryProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.9)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: Theme.colors.background,
-    borderTopLeftRadius: Theme.roundness.xl,
-    borderTopRightRadius: Theme.roundness.xl,
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.roundness.xl,
+    borderTopRightRadius: theme.roundness.xl,
     height: "90%",
     paddingBottom: 24,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   scrollContent: {
     padding: 24,
@@ -126,7 +130,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: "800",
     marginBottom: 16,
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     borderWidth: 4,
     justifyContent: "center",
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     alignItems: "center",
     marginBottom: 12,
   },
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   scoreMax: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
     marginTop: -2,
@@ -162,30 +166,30 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   statValue: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "700",
     marginTop: 6,
     marginBottom: 2,
   },
   statLabel: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "500",
   },
   feedbackContainer: {
-    backgroundColor: Theme.colors.accentBg,
+    backgroundColor: theme.colors.accentBg,
     borderWidth: 1,
-    borderColor: Theme.colors.accentBorder,
-    borderRadius: Theme.roundness.lg,
+    borderColor: theme.colors.accentBorder,
+    borderRadius: theme.roundness.lg,
     padding: 16,
     marginBottom: 24,
   },
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   feedbackText: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 13,
     lineHeight: 20,
   },
@@ -209,23 +213,23 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "700",
     textTransform: "uppercase",
     marginBottom: 12,
   },
   emptyEvents: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 24,
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   emptyText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 13,
     textAlign: "center",
   },
@@ -233,13 +237,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: Theme.roundness.md,
+    borderRadius: theme.roundness.md,
     marginVertical: 4,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   breakdownNameCol: {
     flexDirection: "row",
@@ -248,38 +252,38 @@ const styles = StyleSheet.create({
     flex: 2,
   },
   breakdownName: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "600",
   },
   breakdownCount: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 13,
     flex: 0.5,
     textAlign: "right",
   },
   breakdownDeduct: {
-    color: Theme.colors.danger,
+    color: theme.colors.danger,
     fontSize: 13,
     fontWeight: "700",
     flex: 1,
     textAlign: "right",
   },
   closeButton: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: theme.colors.primary,
     marginHorizontal: 24,
     height: 52,
-    borderRadius: Theme.roundness.lg,
+    borderRadius: theme.roundness.lg,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: Theme.colors.primary,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   closeButtonText: {
-    color: Theme.colors.background,
+    color: theme.colors.background,
     fontSize: 16,
     fontWeight: "700",
   },

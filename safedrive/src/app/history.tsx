@@ -3,14 +3,16 @@ import { useRouter } from "expo-router";
 import { BarChart2, Compass, Trash2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { HistoryCard } from "../components/history-card";
-import { getScoreColor, Theme } from "../constants/theme";
+import { getScoreColor, ThemeType } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 import { clearSessions, DriveSession, getSessions } from "../services/storage";
 
 export default function HistoryScreen() {
   const isFocused = useIsFocused();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const [sessions, setSessions] = useState<DriveSession[]>([]);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function HistoryScreen() {
               <>
                 <View style={styles.analyticsCard}>
                   <View style={styles.analyticsHeader}>
-                    <BarChart2 color={Theme.colors.primary} size={18} />
+                    <BarChart2 color={theme.colors.primary} size={18} />
                     <Text style={styles.analyticsTitle}>Lifetime metrics</Text>
                   </View>
                   <View style={styles.analyticsGrid}>
@@ -74,7 +76,7 @@ export default function HistoryScreen() {
                       <Text style={styles.metricLbl}>Drives</Text>
                     </View>
                     <View style={styles.metricItem}>
-                      <Text style={[styles.metricVal, { color: getScoreColor(avgScore) }]}>{avgScore}</Text>
+                      <Text style={[styles.metricVal, { color: getScoreColor(avgScore, theme.colors) }]}>{avgScore}</Text>
                       <Text style={styles.metricLbl}>Avg Score</Text>
                     </View>
                     <View style={styles.metricItem}>
@@ -89,7 +91,7 @@ export default function HistoryScreen() {
                 </View>
 
                 <TouchableOpacity style={styles.clearBtn} onPress={handleClearHistory}>
-                  <Trash2 color={Theme.colors.danger} size={16} />
+                  <Trash2 color={theme.colors.danger} size={16} />
                   <Text style={styles.clearBtnText}>Clear Drive History</Text>
                 </TouchableOpacity>
               </>
@@ -100,7 +102,7 @@ export default function HistoryScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Compass color={Theme.colors.textMuted} size={48} />
+              <Compass color={theme.colors.textMuted} size={48} />
               <Text style={styles.emptyTitle}>No driving sessions yet</Text>
               <Text style={styles.emptySubtitle}>
                 Go to the Tracker tab and complete a driving session to see your stats here.
@@ -113,10 +115,10 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
   },
   container: {
     flex: 1,
@@ -124,10 +126,10 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   analyticsCard: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.xl,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.xl,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     padding: 16,
     marginBottom: 16,
   },
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   analyticsTitle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -151,12 +153,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   metricVal: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "800",
   },
   metricLbl: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "500",
     marginTop: 2,
@@ -166,15 +168,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: Theme.colors.dangerBg,
+    backgroundColor: theme.colors.dangerBg,
     borderWidth: 1,
-    borderColor: Theme.colors.dangerBorder,
+    borderColor: theme.colors.dangerBorder,
     height: 40,
-    borderRadius: Theme.roundness.md,
+    borderRadius: theme.roundness.md,
     marginBottom: 16,
   },
   clearBtnText: {
-    color: Theme.colors.danger,
+    color: theme.colors.danger,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -188,12 +190,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyTitle: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 16,
     fontWeight: "700",
   },
   emptySubtitle: {
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontSize: 13,
     textAlign: "center",
     paddingHorizontal: 32,

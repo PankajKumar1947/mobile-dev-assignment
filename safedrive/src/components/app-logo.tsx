@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Shield } from "lucide-react-native";
-import { Theme } from "../constants/theme";
+import { ThemeType } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 
 interface AppLogoProps {
   size?: "sm" | "lg";
@@ -9,13 +10,15 @@ interface AppLogoProps {
 }
 
 export function AppLogo({ size = "sm", direction = "row" }: AppLogoProps) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const isLg = size === "lg";
   const isCol = direction === "column";
 
   return (
     <View style={[styles.container, isCol ? styles.column : styles.row]}>
       <View style={[styles.logoCircle, isLg ? styles.logoLg : styles.logoSm]}>
-        <Shield color={Theme.colors.primary} size={isLg ? 40 : 22} />
+        <Shield color={theme.colors.primary} size={isLg ? 40 : 22} />
       </View>
       <View style={isCol ? styles.textCenter : styles.textLeft}>
         <Text style={[styles.title, isLg ? styles.titleLg : styles.titleSm]}>Safe Drive</Text>
@@ -25,7 +28,7 @@ export function AppLogo({ size = "sm", direction = "row" }: AppLogoProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
@@ -38,9 +41,9 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   logoCircle: {
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     borderWidth: 1.5,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -61,7 +64,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   title: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontFamily: undefined,
   },
   titleSm: {
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   subtitle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 13,
     fontWeight: "500",
     marginTop: 2,

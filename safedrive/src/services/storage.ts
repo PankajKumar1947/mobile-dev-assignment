@@ -74,3 +74,24 @@ export async function deleteUserProfile(): Promise<void> {
     console.error(error);
   }
 }
+
+const THEME_KEY = "@safedrive:theme";
+
+export async function saveThemeMode(mode: "light" | "dark"): Promise<void> {
+  try {
+    await AsyncStorage.setItem(THEME_KEY, mode);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function getThemeMode(): Promise<"light" | "dark"> {
+  try {
+    const mode = await AsyncStorage.getItem(THEME_KEY);
+    return (mode === "light" || mode === "dark") ? mode : "dark";
+  } catch (error) {
+    console.error(error);
+    return "dark";
+  }
+}
+

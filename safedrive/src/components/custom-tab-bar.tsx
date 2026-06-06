@@ -1,9 +1,13 @@
 import React from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Gauge, History } from "lucide-react-native";
-import { Theme } from "../constants/theme";
+import { ThemeType } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 
 export function CustomTabBar({ state, descriptors, navigation }: any) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.tabBarWrapper}>
       <View style={styles.tabBarContainer}>
@@ -27,7 +31,7 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
             }
           };
 
-          const color = isFocused ? Theme.colors.primary : Theme.colors.textMuted;
+          const color = isFocused ? theme.colors.primary : theme.colors.textMuted;
           const Icon = route.name === "index" ? Gauge : History;
 
           return (
@@ -47,10 +51,10 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   tabBarWrapper: {
     position: "absolute",
-    bottom: 24,
+    bottom: 12,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -59,12 +63,12 @@ const styles = StyleSheet.create({
   },
   tabBarContainer: {
     flexDirection: "row",
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     width: 220,
     height: 64,
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     justifyContent: "space-around",
     alignItems: "center",
     alignSelf: "center",

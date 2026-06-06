@@ -1,4 +1,4 @@
-export const Theme = {
+export const DarkTheme = {
   colors: {
     background: "#0A0E1A",
     card: "#121A2E",
@@ -28,9 +28,44 @@ export const Theme = {
   },
 };
 
-export function getScoreColor(score: number): string {
-  if (score >= 90) return Theme.colors.success;
-  if (score >= 75) return Theme.colors.primary;
-  if (score >= 60) return Theme.colors.warning;
-  return Theme.colors.danger;
+export const LightTheme = {
+  colors: {
+    background: "#F8FAFC",
+    card: "#FFFFFF",
+    border: "#E2E8F0",
+    text: "#0F172A",
+    textSecondary: "#475569",
+    textMuted: "#94A3B8",
+    textLight: "#334155",
+    primary: "#0EA5E9",
+    success: "#10B981",
+    warning: "#F59E0B",
+    danger: "#EF4444",
+    accent: "#D946EF",
+    accentBg: "rgba(217, 70, 239, 0.05)",
+    accentBorder: "rgba(217, 70, 239, 0.15)",
+    dangerBg: "rgba(239, 68, 68, 0.05)",
+    dangerBorder: "rgba(239, 68, 68, 0.15)",
+    successBg: "rgba(16, 185, 129, 0.05)",
+    primaryBg: "rgba(14, 165, 233, 0.05)",
+  },
+  roundness: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    round: 9999,
+  },
+};
+
+export type ThemeType = typeof DarkTheme;
+
+// Maintain backwards compatibility for static imports during refactoring
+export const Theme = DarkTheme;
+
+export function getScoreColor(score: number, colors: typeof DarkTheme.colors = Theme.colors): string {
+  if (score >= 90) return colors.success;
+  if (score >= 75) return colors.primary;
+  if (score >= 60) return colors.warning;
+  return colors.danger;
 }

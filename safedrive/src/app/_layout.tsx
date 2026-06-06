@@ -1,11 +1,12 @@
 import { Tabs } from "expo-router";
-import { Car, User } from "lucide-react-native";
+import { Car, User, Sun, Moon } from "lucide-react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppLogo } from "../components/app-logo";
 import { CustomTabBar } from "../components/custom-tab-bar";
-import { Theme } from "../constants/theme";
+import { ThemeType } from "../constants/theme";
+import { ThemeProvider, useTheme } from "../context/theme-context";
 import { UserContext } from "../context/user-context";
 import { deleteUserProfile, getUserProfile, saveUserProfile, UserProfile } from "../services/storage";
 
@@ -15,7 +16,9 @@ export function useUser() {
   return context;
 }
 
-export default function RootLayout() {
+function RootLayoutContent() {
+  const { theme, isDark, toggleTheme } = useTheme();
+  const styles = getStyles(theme);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
@@ -52,7 +55,7 @@ export default function RootLayout() {
       <SafeAreaView style={styles.splashContainer}>
         <View style={styles.splashContent}>
           <AppLogo size="lg" direction="column" />
-          <ActivityIndicator size="small" color={Theme.colors.primary} style={{ marginTop: 24 }} />
+          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginTop: 24 }} />
         </View>
       </SafeAreaView>
     );
@@ -71,11 +74,11 @@ export default function RootLayout() {
             <View style={styles.inputWrapper}>
               <Text style={styles.fieldLabel}>Driver's name</Text>
               <View style={styles.inputContainer}>
-                <User color={Theme.colors.textSecondary} size={18} style={styles.fieldIcon} />
+                <User color={theme.colors.textSecondary} size={18} style={styles.fieldIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your name"
-                  placeholderTextColor={Theme.colors.textMuted}
+                  placeholderTextColor={theme.colors.textMuted}
                   value={name}
                   onChangeText={setName}
                 />
@@ -96,7 +99,7 @@ export default function RootLayout() {
                     style={[styles.vehicleCard, vehicle === type.id && styles.vehicleCardActive]}
                     onPress={() => setVehicle(type.id)}
                   >
-                    <Car color={vehicle === type.id ? Theme.colors.primary : Theme.colors.textSecondary} size={22} />
+                    <Car color={vehicle === type.id ? theme.colors.primary : theme.colors.textSecondary} size={22} />
                     <Text style={[styles.vehicleCardText, vehicle === type.id && styles.vehicleCardTextActive]}>
                       {type.label}
                     </Text>
@@ -125,16 +128,29 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: true,
           headerStyle: {
-            backgroundColor: Theme.colors.background,
+            backgroundColor: theme.colors.background,
             borderBottomWidth: 0,
             elevation: 0,
             shadowOpacity: 0,
           },
           headerTitleStyle: {
-            color: Theme.colors.text,
+            color: theme.colors.text,
             fontSize: 20,
             fontWeight: "700",
           },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={toggleTheme}
+              style={{ marginRight: 16, padding: 8 }}
+              activeOpacity={0.7}
+            >
+              {isDark ? (
+                <Sun color={theme.colors.warning} size={20} />
+              ) : (
+                <Moon color={theme.colors.primary} size={20} />
+              )}
+            </TouchableOpacity>
+          ),
         }}
       >
         <Tabs.Screen
@@ -160,13 +176,21 @@ export default function RootLayout() {
         />
       </Tabs>
     </UserContext.Provider>
+  )
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   splashContainer: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -175,7 +199,7 @@ const styles = StyleSheet.create({
   },
   safeOnboard: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
   },
   keyboardContainer: {
     flex: 1,
@@ -189,17 +213,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   fieldLabel: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 13,
     fontWeight: "800",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.md,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     height: 52,
     paddingHorizontal: 16,
   },
@@ -208,7 +232,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 15,
   },
   vehicleRow: {
@@ -218,34 +242,34 @@ const styles = StyleSheet.create({
   },
   vehicleCard: {
     flex: 1,
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
-    borderRadius: Theme.roundness.md,
+    borderColor: theme.colors.border,
+    borderRadius: theme.roundness.md,
     paddingVertical: 14,
     alignItems: "center",
     gap: 8,
   },
   vehicleCardActive: {
-    borderColor: Theme.colors.primary,
+    borderColor: theme.colors.primary,
     backgroundColor: "rgba(56, 189, 248, 0.05)",
   },
   vehicleCardText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
   },
   vehicleCardTextActive: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
   },
   submitBtn: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: theme.colors.primary,
     height: 52,
-    borderRadius: Theme.roundness.md,
+    borderRadius: theme.roundness.md,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 8,
-    shadowColor: Theme.colors.primary,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -255,7 +279,7 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   submitBtnText: {
-    color: Theme.colors.background,
+    color: theme.colors.background,
     fontSize: 14,
     fontWeight: "800",
   },

@@ -2,7 +2,8 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar, Clock, Navigation, AlertTriangle, ChevronRight } from "lucide-react-native";
 import { DriveSession } from "../services/storage";
-import { Theme, getScoreColor } from "../constants/theme";
+import { ThemeType, getScoreColor } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 import { formatDuration } from "../utils/driving-helpers";
 
 interface HistoryCardProps {
@@ -11,6 +12,8 @@ interface HistoryCardProps {
 }
 
 export function HistoryCard({ session, onPress }: HistoryCardProps) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const dateStr = new Date(session.startTime).toLocaleDateString([], {
     month: "short",
     day: "numeric",
@@ -21,7 +24,7 @@ export function HistoryCard({ session, onPress }: HistoryCardProps) {
     minute: "2-digit",
   });
 
-  const scoreColor = getScoreColor(session.score);
+  const scoreColor = getScoreColor(session.score, theme.colors);
   const timeDisplay = formatDuration(session.duration);
 
   return (
@@ -30,7 +33,7 @@ export function HistoryCard({ session, onPress }: HistoryCardProps) {
       <View style={styles.body}>
         <View style={styles.topRow}>
           <View style={styles.dateTime}>
-            <Calendar color={Theme.colors.textMuted} size={14} />
+            <Calendar color={theme.colors.textMuted} size={14} />
             <Text style={styles.dateText}>{dateStr} • {timeStr}</Text>
           </View>
           <View style={[styles.scoreContainer, { backgroundColor: scoreColor + "20" }]}>
@@ -40,15 +43,15 @@ export function HistoryCard({ session, onPress }: HistoryCardProps) {
 
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Clock color={Theme.colors.textSecondary} size={13} />
+            <Clock color={theme.colors.textSecondary} size={13} />
             <Text style={styles.statText}>{timeDisplay}</Text>
           </View>
           <View style={styles.stat}>
-            <Navigation color={Theme.colors.textSecondary} size={13} />
+            <Navigation color={theme.colors.textSecondary} size={13} />
             <Text style={styles.statText}>{session.distance?.toFixed(2)} km</Text>
           </View>
           <View style={styles.stat}>
-            <AlertTriangle color={Theme.colors.danger} size={13} />
+            <AlertTriangle color={theme.colors.danger} size={13} />
             <Text style={styles.statText}>{session.events.length} events</Text>
           </View>
         </View>
@@ -58,21 +61,21 @@ export function HistoryCard({ session, onPress }: HistoryCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     overflow: "hidden",
     alignItems: "center",
   },
   leftBorder: {
     width: 4,
     height: "100%",
-    backgroundColor: Theme.colors.border,
+    backgroundColor: theme.colors.border,
   },
   body: {
     flex: 1,
@@ -90,14 +93,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dateText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "500",
   },
   scoreContainer: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: Theme.roundness.sm,
+    borderRadius: theme.roundness.sm,
   },
   scoreText: {
     fontSize: 14,
@@ -113,7 +116,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statText: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 12,
     fontWeight: "500",
   },

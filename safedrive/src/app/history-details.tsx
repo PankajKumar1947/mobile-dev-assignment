@@ -2,16 +2,19 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Clock, Navigation, Activity, Brain, Award, Flame } from "lucide-react-native";
+import { ArrowLeft, Clock, Navigation, Activity, Brain, Award } from "lucide-react-native";
 import { getSessions, DriveSession } from "../services/storage";
 import { EVENT_METADATA } from "../utils/event-detector";
 import { EventCard } from "../components/event-card";
-import { Theme, getScoreColor } from "../constants/theme";
+import { ThemeType, getScoreColor } from "../constants/theme";
+import { useTheme } from "../context/theme-context";
 import { getAiFeedback, formatDuration } from "../utils/driving-helpers";
 
 export default function HistoryDetailsScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const [session, setSession] = useState<DriveSession | null>(null);
 
   useEffect(() => {
@@ -36,14 +39,14 @@ export default function HistoryDetailsScreen() {
     );
   }
 
-  const scoreColor = getScoreColor(session.score);
+  const scoreColor = getScoreColor(session.score, theme.colors);
   const timeDisplay = formatDuration(session.duration);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.push("/history")}>
-          <ArrowLeft color={Theme.colors.text} size={22} />
+          <ArrowLeft color={theme.colors.text} size={22} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Drive details</Text>
         <View style={{ width: 40 }} />
@@ -60,17 +63,17 @@ export default function HistoryDetailsScreen() {
 
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
-            <Clock color={Theme.colors.primary} size={20} />
+            <Clock color={theme.colors.primary} size={20} />
             <Text style={styles.statValue}>{timeDisplay}</Text>
             <Text style={styles.statLabel}>Duration</Text>
           </View>
           <View style={styles.statBox}>
-            <Navigation color={Theme.colors.success} size={20} />
+            <Navigation color={theme.colors.success} size={20} />
             <Text style={styles.statValue}>{session.distance?.toFixed(2)} km</Text>
             <Text style={styles.statLabel}>Est. Distance</Text>
           </View>
           <View style={styles.statBox}>
-            <Activity color={Theme.colors.warning} size={20} />
+            <Activity color={theme.colors.warning} size={20} />
             <Text style={styles.statValue}>{session.events.length}</Text>
             <Text style={styles.statLabel}>Total Events</Text>
           </View>
@@ -78,7 +81,7 @@ export default function HistoryDetailsScreen() {
 
         <View style={styles.feedbackContainer}>
           <View style={styles.feedbackHeader}>
-            <Brain color={Theme.colors.accent} size={18} />
+            <Brain color={theme.colors.accent} size={18} />
             <Text style={styles.feedbackTitle}>AI driving insights</Text>
           </View>
           <Text style={styles.feedbackText}>{getAiFeedback(session.score, session.events)}</Text>
@@ -88,7 +91,7 @@ export default function HistoryDetailsScreen() {
           <Text style={styles.sectionTitle}>Event logs</Text>
           {session.events.length === 0 ? (
             <View style={styles.emptyEvents}>
-              <Award color={Theme.colors.success} size={36} />
+              <Award color={theme.colors.success} size={36} />
               <Text style={styles.emptyText}>Excellent drive! No unsafe events detected.</Text>
             </View>
           ) : (
@@ -100,10 +103,10 @@ export default function HistoryDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -111,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 15,
   },
   header: {
@@ -127,10 +130,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
   },
   headerTitle: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "700",
   },
@@ -148,7 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     borderWidth: 4,
     justifyContent: "center",
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     alignItems: "center",
     marginBottom: 12,
   },
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   scoreMax: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
     marginTop: -2,
@@ -173,30 +176,30 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   statValue: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "700",
     marginTop: 6,
     marginBottom: 2,
   },
   statLabel: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 11,
     fontWeight: "500",
   },
   feedbackContainer: {
-    backgroundColor: Theme.colors.accentBg,
+    backgroundColor: theme.colors.accentBg,
     borderWidth: 1,
-    borderColor: Theme.colors.accentBorder,
-    borderRadius: Theme.roundness.lg,
+    borderColor: theme.colors.accentBorder,
+    borderRadius: theme.roundness.lg,
     padding: 16,
     marginBottom: 24,
   },
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   feedbackText: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 13,
     lineHeight: 20,
   },
@@ -220,23 +223,23 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: "700",
     textTransform: "uppercase",
     marginBottom: 12,
   },
   emptyEvents: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 24,
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   emptyText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 13,
     textAlign: "center",
   },

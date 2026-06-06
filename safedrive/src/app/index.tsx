@@ -1,18 +1,21 @@
-import { Cpu, LogOut, Play, Square } from "lucide-react-native";
+import { Cpu, LogOut, Play, Square, Sun, Moon } from "lucide-react-native";
 import React, { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { DriveSummary } from "../components/drive-summary";
 import { EventCard } from "../components/event-card";
 import { SensorChart } from "../components/sensor-chart";
-import { Theme, getScoreColor } from "../constants/theme";
+import { ThemeType, getScoreColor } from "../constants/theme";
 import { useUser } from "../context/user-context";
+import { useTheme } from "../context/theme-context";
 import { useDrivingTracker } from "../hooks/use-driving-tracker";
 import { getSafetyRating } from "../utils/driving-helpers";
 import { DriveSession } from "../services/storage";
 
 export default function Index() {
   const { profile, logout } = useUser();
+  const { theme, isDark, toggleTheme } = useTheme();
+  const styles = getStyles(theme);
+
   const {
     isActive,
     duration,
@@ -49,7 +52,7 @@ export default function Index() {
 
   return (
     <View style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
         <View style={styles.profileHeader}>
@@ -58,18 +61,18 @@ export default function Index() {
             <Text style={styles.profileVehicle}>{profile?.vehicleType} Driver</Text>
           </View>
           <TouchableOpacity style={styles.logoutBtn} onPress={logout} disabled={isActive}>
-            <LogOut color={isActive ? Theme.colors.textMuted : Theme.colors.danger} size={16} />
-            <Text style={[styles.logoutText, isActive && { color: Theme.colors.textMuted }]}>Logout</Text>
+            <LogOut color={isActive ? theme.colors.textMuted : theme.colors.danger} size={16} />
+            <Text style={[styles.logoutText, isActive && { color: theme.colors.textMuted }]}>Logout</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.statePanel}>
           <View style={styles.scoreGaugeContainer}>
-            <View style={[styles.scoreGauge, { borderColor: getScoreColor(score) }]}>
-              <Text style={[styles.scoreValue, { color: getScoreColor(score) }]}>{score}</Text>
+            <View style={[styles.scoreGauge, { borderColor: getScoreColor(score, theme.colors) }]}>
+              <Text style={[styles.scoreValue, { color: getScoreColor(score, theme.colors) }]}>{score}</Text>
               <Text style={styles.scoreLabel}>Score</Text>
             </View>
-            <Text style={[styles.ratingText, { color: getScoreColor(score) }]}>
+            <Text style={[styles.ratingText, { color: getScoreColor(score, theme.colors) }]}>
               {getSafetyRating(score)} rating
             </Text>
           </View>
@@ -81,7 +84,7 @@ export default function Index() {
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statSubTitle}>Events detected</Text>
-              <Text style={[styles.statBigValue, { color: events.length > 0 ? Theme.colors.danger : Theme.colors.text }]}>
+              <Text style={[styles.statBigValue, { color: events.length > 0 ? theme.colors.danger : theme.colors.text }]}>
                 {events.length}
               </Text>
             </View>
@@ -94,13 +97,13 @@ export default function Index() {
         >
           {isActive ? (
             <View style={styles.buttonInner}>
-              <Square color={Theme.colors.danger} fill={Theme.colors.danger} size={20} />
+              <Square color={theme.colors.danger} fill={theme.colors.danger} size={20} />
               <Text style={styles.buttonText}>End drive</Text>
             </View>
           ) : (
             <View style={styles.buttonInner}>
-              <Play color={Theme.colors.background} fill={Theme.colors.background} size={20} />
-              <Text style={[styles.buttonText, { color: Theme.colors.background }]}>Start drive</Text>
+              <Play color={theme.colors.background} fill={theme.colors.background} size={20} />
+              <Text style={[styles.buttonText, { color: theme.colors.background }]}>Start drive</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -113,7 +116,7 @@ export default function Index() {
             onPress={() => setShowSimulator(!showSimulator)}
           >
             <View style={styles.simTitleCol}>
-              <Cpu color={Theme.colors.primary} size={18} />
+              <Cpu color={theme.colors.primary} size={18} />
               <Text style={styles.simulatorTitle}>Telemetry Simulator</Text>
             </View>
             <Text style={styles.toggleText}>{showSimulator ? "Hide" : "Show"}</Text>
@@ -194,10 +197,10 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ThemeType) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -205,12 +208,12 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
   },
   statePanel: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.xl,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.xl,
     padding: 20,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     marginBottom: 16,
   },
   scoreGaugeContainer: {
@@ -224,7 +227,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     marginBottom: 8,
   },
   scoreValue: {
@@ -232,7 +235,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   scoreLabel: {
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -247,25 +250,25 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
-    borderRadius: Theme.roundness.md,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.roundness.md,
     paddingVertical: 12,
     alignItems: "center",
   },
   statSubTitle: {
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontSize: 10,
     fontWeight: "700",
     marginBottom: 4,
   },
   statBigValue: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "800",
   },
   actionButton: {
     height: 54,
-    borderRadius: Theme.roundness.lg,
+    borderRadius: theme.roundness.lg,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -275,14 +278,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonStart: {
-    backgroundColor: Theme.colors.primary,
-    shadowColor: Theme.colors.primary,
+    backgroundColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
   },
   buttonStop: {
-    backgroundColor: Theme.colors.card,
+    backgroundColor: theme.colors.card,
     borderWidth: 1.5,
-    borderColor: Theme.colors.danger,
-    shadowColor: Theme.colors.danger,
+    borderColor: theme.colors.danger,
+    shadowColor: theme.colors.danger,
   },
   buttonInner: {
     flexDirection: "row",
@@ -290,15 +293,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: Theme.colors.danger,
+    color: theme.colors.danger,
     fontSize: 15,
     fontWeight: "800",
   },
   simulatorCard: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     padding: 16,
     marginBottom: 16,
   },
@@ -313,12 +316,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   simulatorTitle: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
   },
   toggleText: {
-    color: Theme.colors.primary,
+    color: theme.colors.primary,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   simHelperText: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginBottom: 12,
   },
@@ -336,16 +339,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   simBtn: {
-    backgroundColor: Theme.colors.border,
+    backgroundColor: theme.colors.border,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: Theme.roundness.sm,
+    borderRadius: theme.roundness.sm,
   },
   disabledSimBtn: {
     opacity: 0.35,
   },
   simBtnText: {
-    color: Theme.colors.textLight,
+    color: theme.colors.textLight,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -353,58 +356,73 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionHeader: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
     marginBottom: 8,
   },
   noEventsBox: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.md,
     paddingVertical: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   noEventsText: {
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontSize: 13,
   },
   profileHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.roundness.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.roundness.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     marginBottom: 16,
   },
   profileWelcome: {
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "800",
   },
   profileVehicle: {
-    color: Theme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: "500",
     marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  themeBtn: {
+    backgroundColor: theme.colors.border,
+    width: 36,
+    height: 36,
+    borderRadius: theme.roundness.sm,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Theme.colors.dangerBg,
+    backgroundColor: theme.colors.dangerBg,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: Theme.roundness.sm,
+    borderRadius: theme.roundness.sm,
     borderWidth: 1,
-    borderColor: Theme.colors.dangerBorder,
+    borderColor: theme.colors.dangerBorder,
   },
   logoutText: {
-    color: Theme.colors.danger,
+    color: theme.colors.danger,
     fontSize: 12,
     fontWeight: "700",
   },
