@@ -1,56 +1,117 @@
-# Welcome to your Expo app 👋
+# Safe Drive – Driver Distraction & Harsh Driving Detection System
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Safe Drive** is a mobile application built using React Native and Expo designed to analyze driving behavior in real-time. By leveraging mobile device sensors (Accelerometer & Gyroscope), the application detects driving hazards such as harsh braking, sudden acceleration, sharp turns, phone distraction, and excessive movement to calculate a driving safety score and provide AI-generated feedback.
 
-## Get started
+## Screenshots
 
-1. Install dependencies
+<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;">
+  <img src="screenshots/1.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/2.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/3.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/4.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/5.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/6.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/7.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/8.jpeg" width="200" style="margin: 0; padding: 0;" />
+  <img src="screenshots/9.jpeg" width="200" style="margin: 0; padding: 0;" />
+</div>
 
+---
+
+## Features & UX Highlights
+
+1. **Dashboard & Drive Tracker**:
+   - **Real-Time Sensor Telemetry**: A live G-force balance chart and rotation rate progress bar map accelerometer and gyroscope states.
+   - **Interactive Telemetry Simulator**: Inject mock hazard events to test scoring deductions and log triggers directly on simulators.
+   - **Drive Session Control**: Easily start and end drive sessions to collect session data.
+2. **Dynamic Light & Dark Theme**:
+   - Obsidian-cobalt neon theme for dark mode and soft slate theme for light mode.
+   - Persisted theme settings using `AsyncStorage`.
+   - Access toggle directly in the top-right navigation header.
+3. **Pill Navigation Bar**:
+   - Clean, centered tab bar with layout margins that avoids full-width clutter and feels premium.
+4. **Historical Insights**:
+   - Lifetime metrics (total drives, average score, distance, and total events).
+   - Clear history functionality with confirmation alerts.
+   - Full scrollable list of historical sessions.
+5. **Standalone Drive Details Screen**:
+   - Interactive breakdown of unsafe events.
+   - AI-generated driving insights feedback based on session severity.
+   - Event timeline log that scrolls completely without clipping behind the bottom tab bar.
+
+---
+
+## Tech Stack
+
+- **Core**: React Native (Expo v55, Expo Router v3)
+- **Language**: TypeScript
+- **Styling**: Vanilla React Native `StyleSheet` with dynamic theme context provider
+- **Storage**: `@react-native-async-storage/async-storage` for profiles, drive sessions, and settings persistence
+- **Icons**: `lucide-react-native`
+
+---
+
+## Sensors & Event Detection Strategy
+
+The app utilizes **Accelerometer** and **Gyroscope** data samples to detect driving behavior:
+
+1. **Filtering & Preprocessing**:
+   - Magnitude calculations ($|v| = \sqrt{x^2 + y^2 + z^2}$) are performed on raw linear acceleration (excluding gravity) and rotation rates to normalize multi-axis motion.
+   - A low-pass filter (LPF) is used to smooth transient spikes and isolate gravity vector components.
+2. **Event Cooldowns**:
+   - A **3-second cooldown** is enforced per hazard type to prevent duplicate event triggers from the same continuous motion.
+
+### Detection Thresholds & Deductions
+
+| Event Type | Sensor Condition | Score Deduction | Severity |
+| :--- | :--- | :---: | :---: |
+| **Harsh Acceleration** | Acceleration $> 3.0 \, m/s^2$ (when steering is stable) | `-5` | Medium |
+| **Harsh Braking** | Acceleration $> 3.9 \, m/s^2$ | `-5` | High |
+| **Sharp Turn** | Acceleration $> 3.4 \, m/s^2$ AND Gyroscope $> 0.5 \, rad/s$ | `-3` | Medium |
+| **Aggressive Steering** | Gyroscope $> 0.8 \, rad/s$ | `-3` | Low |
+| **Phone Handling** | Gyroscope $> 1.2 \, rad/s$ AND Acceleration $< 2.5 \, m/s^2$ | `-10` | High |
+| **Excessive Device Movement** | Acceleration $> 4.5 \, m/s^2$ AND Gyroscope $> 1.5 \, rad/s$ | `-5` | Low |
+
+---
+
+## Driving Score & Safety Ratings
+
+Each drive session begins with a base score of **`100`**. Points are subtracted dynamically as hazard events are triggered during the session (bottoming out at `0`):
+
+- **Final Score**: $\max(0, 100 - \sum \text{Deductions})$
+- **Safety Ratings**:
+  - `Score >= 90`: **Excellent** rating (Green)
+  - `Score >= 75`: **Good** rating (Cyan)
+  - `Score >= 60`: **Fair** rating (Amber)
+  - `Score < 60`: **Unsafe** rating (Red)
+
+---
+
+## How to Run Locally
+
+### Prerequisites
+- Node.js (v18+)
+- Expo Go app on a physical device, or Android Emulator / iOS Simulator configured on your machine.
+
+### Installation
+1. Clone this repository and navigate to the project directory:
+   ```bash
+   cd safedrive
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-2. Start the app
-
+3. Start the application:
    ```bash
-   npx expo start
+   npm start
    ```
+4. Scan the QR code shown in the terminal using the **Expo Go** app, or press `a` (Android) / `i` (iOS) to load the app in the simulator.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Assumptions & Considerations
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **Device Placement**: The detection algorithm assumes that the device is relatively secure (e.g., inside a car mount or console slot). If the phone slides off the seat, it will trigger an **Excessive Device Movement** warning.
+- **Phone Handling Distinction**: Phone handling is identified when there is significant rotational rate change (gyroscopic movement) but minimal overall vehicle acceleration change, suggesting the driver is interacting with the device directly.
+- **Battery Efficiency**: Sensor sample rates are optimized to query at 10Hz to prevent battery drain while remaining highly responsive to rapid maneuvers.
